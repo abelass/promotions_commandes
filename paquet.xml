@@ -7,10 +7,7 @@
 	logo="prive/themes/spip/images/promotions_commandes-64.png"
 	documentation=""
 >
-	<!--
-		Paquet généré le 2018-03-25 13:30:54
-		(Vous pouvez bien entendu supprimer ces commentaires)
-	-->
+
 
 	<nom>Promotions commandes</nom>
 	<!-- Ouvre les plugin Promotions aux commandes -->
@@ -22,26 +19,7 @@
 
 	<necessite nom="promotions" compatibilite="[1.8.0;]" />
 	<necessite nom="commandes" compatibilite="[1.15.4;]" />
-
-	<!--
-		Exemple de commandes
-		* dependances
-		<utilise nom="saisies" compatibilite="[2.4.0;]" />
-		<lib nom="simplehtmldom" lien="http://chemin_vers_archive.zip" />
-		* pipelines
-		<pipeline nom="autoriser" inclure="promotions_commandes_autorisations.php" />
-		<pipeline nom="insert_head" inclure="promotions_commandes_pipelines.php" />
-		* declarer un pipeline
-		<pipeline nom="mon_pipeline" action="" />
-		* parents de menus de SPIP :
-				menu_accueil (à éviter), menu_edition, menu_publication,
-				menu_activite, menu_squelette, menu_administration, menu_configuration
-		<menu nom="promotions_commandes" titre="promotions_commandes:promotions_commandes_titre" parent="menu_edition"  icone="images/promotions_commandes-16.png" />
-		* parents d'onglets... configuration, plugins, statistiques, ...
-		<onglet nom="promotions_commandes" titre="promotions_commandes:promotions_commandes_titre" parent="configuration" icone="images/promotions_commandes-24.png" />
-	-->
-
-
+	<necessite nom="paniers" compatibilite="[1.3.3;]" />
 
 
 </paquet>
