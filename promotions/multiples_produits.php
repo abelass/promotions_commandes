@@ -38,7 +38,7 @@ function promotions_multiples_produits_dist($flux = array()) {
 		$label_id_objet = _T('reservation:label_obets_choix');
 	}
 	$return = array (
-		'nom' => _T('reservation:nom_reservation_multiples_evenements'),
+		'nom' => _T('promotions_commandes:nom_multiples_commandes'),
 		'plugins_applicables' => 'commandes',
 		'saisies' => array (
 			array (
