@@ -34,7 +34,7 @@ function promotions_commandes_post_edition($flux) {
 		if (! _request('exec')) {
 			spip_log(2, 'teste');
 			$date = date('Y-m-d H:i:s');
-			$sql = sql_select('prix_unitaire_ht, id_commandes_detail', 'spip_commandes_details', 'id_commande=' . $id_commande);
+			$sql = sql_select('prix_unitaire_ht, reduction, id_commandes_detail', 'spip_commandes_details', 'id_commande=' . $id_commande);
 
 
 			while ($commande_details = sql_fetch($sql)) {
@@ -43,11 +43,12 @@ function promotions_commandes_post_edition($flux) {
 
 				$i = 0;
 				while ($data = sql_fetch($sql)) {
-
 					// Établir le prix original
 					if ($i == 0) {
 						$flux['data']['prix_original'] = $commande_details['prix_unitaire_ht'];
+
 					}
+					$reduction_original = $commande_details['reduction'];
 
 					$flux['data']['prix_ht'] = $commande_details['prix_unitaire_ht'];
 
@@ -55,7 +56,7 @@ function promotions_commandes_post_edition($flux) {
 					//$non_cumulable = isset($data['non_cumulable']) ? unserialize($data['non_cumulable']) : array ();
 					$id_promotion = $data['id_promotion'];
 					$commandes_exclus_promotion = isset($commandes_exclus[$id_promotion]) ? $commandes_exclus[$id_promotion] : array ();
-					//$exclure_toutes = (isset($evenements_exclus['toutes'])) ? $evenements_exclus['toutes'] : '';
+					$exclure_toutes = (isset($commandes_exclus['toutes'])) ? $commandes_exclus['toutes'] : '';
 					if ($details = charger_fonction('action', 'promotions/' . $data['type_promotion'], true) and
 							(
 									!$plugins_applicables or
@@ -69,11 +70,11 @@ function promotions_commandes_post_edition($flux) {
 									$data['date_fin'] == '0000-00-00 00:00:00'
 									or
 									$data['date_fin'] >= $date
-									) /*and
-									//and ! in_array($id_evenement, $commandes_exclus_promotion)
-									(! $exclure_toutes or ($exclure_toutes and $exclure_toutes[0] == $id_promotion))*/
+									) and
+									!in_array($id_commande, $commandes_exclus_promotion) and
+									(!$exclure_toutes or ($exclure_toutes and $exclure_toutes[0] == $id_promotion))
 							) {
-
+								spip_log(3, 'teste');
 
 								$data['valeurs_promotion'] = unserialize($data['valeurs_promotion']);
 
@@ -102,27 +103,33 @@ function promotions_commandes_post_edition($flux) {
 									// On applique les réductions prévues
 									// En pourcentage
 									if ($type_reduction == 'pourcentage') {
+										spip_log(4.1, 'teste');
+
 										// Prix de base
 										if (isset($data['prix_base'])) {
-											if ($data['prix_base'] == 'prix_reduit')
-												$prix_base = $flux['data']['prix_ht'];
-												elseif ($data['prix_base'] == 'prix_original')
+											if ($data['prix_base'] == 'prix_reduit') {
+												$prix_base = $flux['data']['prix_ht'] * (1.0 - $commande_details['reduction']);
+											}
+											elseif ($data['prix_base'] == 'prix_original') {
 												$prix_base = $flux['data']['prix_original'];
+											}
 										}
 
-										if($flux['data']['prix_ht'] > 0) {
+										if($prix_base > 0) {
 											$reduction = $prix_base / 100 * $reduction;
 											$reduction = $reduction / $prix_base;
 											$prix_promotion = $flux['data']['prix_ht'] - $flux['data']['reduction'];
 										}
 									} // En absolu
 									elseif ($type_reduction == 'absolu') {
+										spip_log(4.2, 'teste');
 										if ($flux['data']['prix_ht'] > 0) {
 											$reduction = $reduction / $flux['data']['prix_ht'];
 											$prix_promotion = $flux['data']['prix_ht'] - $flux['data']['reduction'];
 										}
 									}
-									set_request('reduction', $reduction);
+									spip_log('reduction' . $reduction, 'teste');
+									$reduction = $commande_details['reduction'] + $reduction;
 								}
 
 								// On prépare l'enregistrement de la promotion
@@ -139,7 +146,10 @@ function promotions_commandes_post_edition($flux) {
 								set_request('donnees_promotion', '');
 				}
 
-				sql_updateq('spip_commandes_details', array('reduction' => $reduction), 'id_commande=' . $id_commande);
+				sql_updateq(
+						'spip_commandes_details',
+						array('reduction' => $reduction),
+						'id_commandes_detail=' . $commande_details['id_commandes_detail']);
 			}
 		}
 	}
