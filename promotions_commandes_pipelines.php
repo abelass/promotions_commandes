@@ -22,100 +22,125 @@ if (!defined('_ECRIRE_INC_VERSION')) {
  *        	Données du pipeline
  * @return array
  */
-function promotions_panier2commande_prix($flux) {
-	if (! _request('exec')) {
-		$date = date('Y-m-d H:i:s');
-		$sql = sql_select('*', 'spip_promotions', 'statut=' . sql_quote('publie'), '', 'rang');
-		//$commandes_exclus = _request('commandes_exclus') ? _request('commandes_exclus') : array ();
-		$id_evenement = $flux['data']['id_evenement'];
 
-		while ($data = sql_fetch($sql)) {
-			$plugins_applicables = isset($data['plugins_applicables']) ? unserialize($data['plugins_applicables']) : '';
-			//$non_cumulable = isset($data['non_cumulable']) ? unserialize($data['non_cumulable']) : array ();
-			$id_promotion = $data['id_promotion'];
-			//$commandes_exclus_promotion = isset($commandes_exclus[$id_promotion]) ? $commandes_exclus[$id_promotion] : array ();
-			$exclure_toutes = (isset($evenements_exclus['toutes'])) ? $evenements_exclus['toutes'] : '';
-			if ($details = charger_fonction('action', 'promotions/' . $data['type_promotion'], true) and
-					(
-					!$plugins_applicables or
-					in_array('commandes', $plugins_applicables)
-					) and
-					(
-						$data['date_debut'] == '0000-00-00 00:00:00' or
-						$data['date_debut'] <= $date
-					) and
-					(
-						$data['date_fin'] == '0000-00-00 00:00:00'
-						or
-						$data['date_fin'] >= $date
-					) and
-					//and ! in_array($id_evenement, $commandes_exclus_promotion)
-					(! $exclure_toutes or ($exclure_toutes and $exclure_toutes[0] == $id_promotion))) {
+function promotions_commandes_post_edition($flux) {
 
-						// Essaie de trouver le prix original
-						$flux['data']['prix_original'] = isset($flux['data']['prix_original']) ? $flux['data']['prix_original'] : $flux['data']['prix_ht'];
-						$data['valeurs_promotion'] = unserialize($data['valeurs_promotion']);
+	$table = $flux['args']['table'];
+	if ($table == 'spip_commandes' and
+				$flux['args']['action'] == 'remplir_commande' and
+				$id_commande = $flux['args']['id_objet']
+			) {
+		spip_log(1, 'teste');
+		if (! _request('exec')) {
+			spip_log(2, 'teste');
+			$date = date('Y-m-d H:i:s');
+			$sql = sql_select('prix_unitaire_ht, id_commandes_detail', 'spip_commandes_details', 'id_commande=' . $id_commande);
 
-						// Pour l'enregistrement de la promotion
-						$flux['data']['objet'] = 'reservations_detail';
-						$flux['data']['table'] = 'spip_reservations_details';
 
-						$reduction = $data['reduction'];
-						$type_reduction = $data['type_reduction'];
-						$flux['data']['applicable'] = 'non';
+			while ($commande_details = sql_fetch($sql)) {
+				$sql = sql_select('*', 'spip_promotions', 'statut=' . sql_quote('publie'), '', 'rang');
+				$commandes_exclus = _request('commandes_exclus') ? _request('commandes_exclus') : array ();
 
-						// On passe à la fonction de la promotion pour établir si la promotion s'applique
-						$flux = $details($flux, $data);
+				$i = 0;
+				while ($data = sql_fetch($sql)) {
 
-						// Si oui on modifie le prix
-						if ($flux['data']['applicable'] == 'oui') {
-							/*if (is_array($non_cumulable)) {
-								foreach ($non_cumulable as $nc) {
-									$evenements_exclus[$nc][] = $id_evenement;
-									if ($nc == 'toutes')
-										$evenements_exclus[$nc][0] = $id_promotion;
-								}
-							}
-							set_request('evenements_exclus', $evenements_exclus);*/
-
-							// On applique les réductions prévues
-							// En pourcentage
-							if ($type_reduction == 'pourcentage') {
-								// Prix de base
-								if (isset($data['prix_base'])) {
-									if ($data['prix_base'] == 'prix_reduit')
-										$prix_base = $flux['data']['prix_ht'];
-										elseif ($data['prix_base'] == 'prix_original')
-										$prix_base = $flux['data']['prix_original'];
-								}
-
-								if($flux['data']['prix_ht'] > 0) {
-									$flux['data']['prix_ht'] = $flux['data']['prix_ht'] - ($prix_base / 100 * $reduction);
-								}
-								else {
-									$flux['data']['prix_ht'] = 0;
-								}
-								$flux['data']['prix'] = 0;
-							} // En absolu
-							elseif ($type_reduction == 'absolu')
-							if ($flux['data']['prix_ht'] > 0) {
-								$flux['data']['prix_ht'] = $flux['data']['prix_ht'] - $reduction;
-								$flux['data']['prix'] = 0;
-							}
-						}
-
-						// On prépare l'enregistrement de la promotion
-						set_request('donnees_promotion', array (
-							'id_promotion' => $data['id_promotion'],
-							'objet' => $flux['data']['objet'],
-							'prix_original' => $flux['data']['prix_original'],
-							'prix_promotion' => $flux['data']['prix_ht']
-						));
-						// On passe le nom de la table pour la pipeline post_insertion
-						set_request('table', $flux['data']['table']);
+					// Établir le prix original
+					if ($i == 0) {
+						$flux['data']['prix_original'] = $commande_details['prix_unitaire_ht'];
 					}
-					else
-						set_request('donnees_promotion', '');
+
+					$flux['data']['prix_ht'] = $commande_details['prix_unitaire_ht'];
+
+					$plugins_applicables = isset($data['plugins_applicables']) ? unserialize($data['plugins_applicables']) : '';
+					//$non_cumulable = isset($data['non_cumulable']) ? unserialize($data['non_cumulable']) : array ();
+					$id_promotion = $data['id_promotion'];
+					$commandes_exclus_promotion = isset($commandes_exclus[$id_promotion]) ? $commandes_exclus[$id_promotion] : array ();
+					//$exclure_toutes = (isset($evenements_exclus['toutes'])) ? $evenements_exclus['toutes'] : '';
+					if ($details = charger_fonction('action', 'promotions/' . $data['type_promotion'], true) and
+							(
+									!$plugins_applicables or
+									in_array('commandes', $plugins_applicables)
+									) and
+							(
+									$data['date_debut'] == '0000-00-00 00:00:00' or
+									$data['date_debut'] <= $date
+									) and
+							(
+									$data['date_fin'] == '0000-00-00 00:00:00'
+									or
+									$data['date_fin'] >= $date
+									) /*and
+									//and ! in_array($id_evenement, $commandes_exclus_promotion)
+									(! $exclure_toutes or ($exclure_toutes and $exclure_toutes[0] == $id_promotion))*/
+							) {
+
+
+								$data['valeurs_promotion'] = unserialize($data['valeurs_promotion']);
+
+								// Pour l'enregistrement de la promotion
+								$flux['data']['objet'] = 'commandes_detail';
+								$flux['data']['table'] = 'spip_commandes_details';
+
+								$reduction = $reduction = $data['reduction'];
+								$type_reduction = $data['type_reduction'];
+								$flux['data']['applicable'] = 'non';
+
+								// On passe à la fonction de la promotion pour établir si la promotion s'applique
+								$flux = $details($flux, $data);
+
+								// Si oui on modifie le prix
+								if ($flux['data']['applicable'] == 'oui') {
+									if (is_array($non_cumulable)) {
+										foreach ($non_cumulable as $nc) {
+											$commandes_exclus[$nc][] = $id_commande;
+											if ($nc == 'toutes')
+												$commandes_exclus[$nc][0] = $id_promotion;
+										}
+									}
+									set_request('commandes_exclus', $commandes_exclus);
+
+									// On applique les réductions prévues
+									// En pourcentage
+									if ($type_reduction == 'pourcentage') {
+										// Prix de base
+										if (isset($data['prix_base'])) {
+											if ($data['prix_base'] == 'prix_reduit')
+												$prix_base = $flux['data']['prix_ht'];
+												elseif ($data['prix_base'] == 'prix_original')
+												$prix_base = $flux['data']['prix_original'];
+										}
+
+										if($flux['data']['prix_ht'] > 0) {
+											$reduction = $prix_base / 100 * $reduction;
+											$reduction = $reduction / $prix_base;
+											$prix_promotion = $flux['data']['prix_ht'] - $flux['data']['reduction'];
+										}
+									} // En absolu
+									elseif ($type_reduction == 'absolu') {
+										if ($flux['data']['prix_ht'] > 0) {
+											$reduction = $reduction / $flux['data']['prix_ht'];
+											$prix_promotion = $flux['data']['prix_ht'] - $flux['data']['reduction'];
+										}
+									}
+									set_request('reduction', $reduction);
+								}
+
+								// On prépare l'enregistrement de la promotion
+								set_request('donnees_promotion', array (
+									'id_promotion' => $data['id_promotion'],
+									'objet' => $flux['data']['objet'],
+									'prix_original' => $flux['data']['prix_original'],
+									'prix_promotion' => $prix_promotion
+								));
+								// On passe le nom de la table pour la pipeline post_insertion
+								set_request('table', $flux['data']['table']);
+							}
+							else
+								set_request('donnees_promotion', '');
+				}
+
+				sql_updateq('spip_commandes_details', array('reduction' => $reduction), 'id_commande=' . $id_commande);
+			}
 		}
 	}
 	return $flux;
