@@ -13,7 +13,7 @@
 	<!-- Ouvre les plugin Promotions aux commandes -->
 
 	<!-- cette balise peut être présente plusieurs fois s'il y a plusieurs auteurs -->
-	<auteur>Rainer Müller</auteur>
+	<auteur lien='https://websimple.be'>Rainer Müller</auteur>
 
 	<licence>GNU/GPL</licence>
 
@@ -21,5 +21,5 @@
 	<necessite nom="commandes" compatibilite="[1.15.4;]" />
 	<necessite nom="paniers" compatibilite="[1.3.3;]" />
 
-
+	<pipeline nom="panier2commande_prix" inclure="promotions_commandes_pipelines.php" />
 </paquet>
