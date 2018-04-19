@@ -48,6 +48,10 @@ function promotions_commandes_post_edition($flux) {
 						$flux['data']['prix_original'] = $commande_details['prix_unitaire_ht'];
 					}
 
+					if (!$prix_promotion) {
+						$prix_promotion = $flux['data']['prix_original'];
+					}
+
 					$reduction_original = $commande_details['reduction'];
 
 					$flux['data']['prix_ht'] = $commande_details['prix_unitaire_ht'];
@@ -107,7 +111,7 @@ function promotions_commandes_post_edition($flux) {
 										// Prix de base
 										if (isset($data['prix_base'])) {
 											if ($data['prix_base'] == 'prix_reduit') {
-												$prix_base = $flux['data']['prix_ht'] * (1.0 - $commande_details['reduction']);
+												$prix_base = $prix_promotion;
 											}
 											elseif ($data['prix_base'] == 'prix_original') {
 												$prix_base = $flux['data']['prix_original'];
@@ -116,19 +120,23 @@ function promotions_commandes_post_edition($flux) {
 
 										if($prix_base > 0) {
 											$reduction = $prix_base / 100 * $reduction_promo;
-											$reduction_effective  = $reduction_effective + ($reduction / $prix_base);
-											$prix_promotion = $prix_base - $reduction_effective;
+											spip_log('reduction1 ' . $reduction, 'teste');
+											spip_log('prix_base1 ' . $prix_base, 'teste');
+											$reduction_effective  = $reduction_effective + ($reduction / $flux['data']['prix_original']);
+
+											$prix_promotion = $prix_base * (1.0 - $reduction_effective);
 										}
 									} // En absolu
 									elseif ($type_reduction == 'absolu') {
 										spip_log(4.2, 'teste');
 										if ($prix_base > 0) {
-											$reduction_effective = $reduction_effective +($reduction / $prix_base);
-											$prix_promotion = $prix_base - $reduction_effective;
+											$reduction_effective = $reduction_effective + ($reduction / $prix_base);
+											$prix_promotion = $prix_base * (1.0 - $reduction_effective);
 										}
 									}
-									spip_log('prix' . $prix_promotion, 'teste');
-									spip_log('reduction' . $reduction_effective, 'teste');
+									spip_log('prix_base ' . $prix_base, 'teste');
+									spip_log('prix ' . $prix_promotion, 'teste');
+									spip_log('reduction ' . $reduction_effective, 'teste');
 								}
 
 								// On prépare l'enregistrement de la promotion
