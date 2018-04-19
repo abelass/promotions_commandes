@@ -31,14 +31,13 @@ function promotions_commandes_post_edition($flux) {
 				$id_commande = $flux['args']['id_objet']
 			) {
 		if (! _request('exec')) {
-			spip_log(2, 'teste');
 			$date = date('Y-m-d H:i:s');
 			$sql = sql_select('prix_unitaire_ht, reduction, id_commandes_detail', 'spip_commandes_details', 'id_commande=' . $id_commande);
 
 			$reduction_effective = 0;
 			while ($commande_details = sql_fetch($sql)) {
 				$sql = sql_select('*', 'spip_promotions', 'statut=' . sql_quote('publie'), '', 'rang');
-				$commandes_exclus = _request('commandes_exclus') ? _request('commandes_exclus') : array ();
+				$commandes_exclus = array();
 
 				$i = 0;
 				while ($data = sql_fetch($sql)) {
@@ -56,7 +55,7 @@ function promotions_commandes_post_edition($flux) {
 					$flux['data']['prix_ht'] = $commande_details['prix_unitaire_ht'];
 
 					$plugins_applicables = isset($data['plugins_applicables']) ? unserialize($data['plugins_applicables']) : '';
-					//$non_cumulable = isset($data['non_cumulable']) ? unserialize($data['non_cumulable']) : array ();
+					$non_cumulable = isset($data['non_cumulable']) ? unserialize($data['non_cumulable']) : array ();
 					$id_promotion = $data['id_promotion'];
 					$commandes_exclus_promotion = isset($commandes_exclus[$id_promotion]) ? $commandes_exclus[$id_promotion] : array ();
 					$exclure_toutes = (isset($commandes_exclus['toutes'])) ? $commandes_exclus['toutes'] : '';
@@ -99,9 +98,8 @@ function promotions_commandes_post_edition($flux) {
 												$commandes_exclus[$nc][0] = $id_promotion;
 										}
 									}
-									set_request('commandes_exclus', $commandes_exclus);
 
-									// On applique les réductions prévues
+								// On applique les réductions prévues
 									// En pourcentage
 									if ($type_reduction == 'pourcentage') {
 
