@@ -120,7 +120,8 @@ function promotions_commandes_post_edition($flux) {
 											$reduction_effective  = $reduction_effective + ($reduction / $flux['data']['prix_original']);
 											$prix_promotion = $prix_base * (1.0 - $reduction_effective);
 										}
-									} // En absolu
+									}
+									// En absolu
 									elseif ($type_reduction == 'absolu') {
 										if ($prix_promotion > 0) {
 											$reduction_effective = $reduction_effective + ($reduction_promo / $flux['data']['prix_original']);
@@ -143,6 +144,7 @@ function promotions_commandes_post_edition($flux) {
 								set_request('donnees_promotion', '');
 				}
 
+				// En enregistre la réduction.
 				sql_updateq(
 						'spip_commandes_details',
 						array('reduction' => $reduction_effective),
