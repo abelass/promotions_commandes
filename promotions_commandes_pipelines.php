@@ -30,7 +30,6 @@ function promotions_commandes_post_edition($flux) {
 				$flux['args']['action'] == 'remplir_commande' and
 				$id_commande = $flux['args']['id_objet']
 			) {
-		spip_log(1, 'teste');
 		if (! _request('exec')) {
 			spip_log(2, 'teste');
 			$date = date('Y-m-d H:i:s');
@@ -78,8 +77,6 @@ function promotions_commandes_post_edition($flux) {
 									!in_array($id_commande, $commandes_exclus_promotion) and
 									(!$exclure_toutes or ($exclure_toutes and $exclure_toutes[0] == $id_promotion))
 							) {
-								spip_log(3, 'teste');
-
 								$data['valeurs_promotion'] = unserialize($data['valeurs_promotion']);
 
 								// Pour l'enregistrement de la promotion
@@ -120,23 +117,16 @@ function promotions_commandes_post_edition($flux) {
 
 										if($prix_base > 0) {
 											$reduction = $prix_base / 100 * $reduction_promo;
-											spip_log('reduction1 ' . $reduction, 'teste');
-											spip_log('prix_base1 ' . $prix_base, 'teste');
 											$reduction_effective  = $reduction_effective + ($reduction / $flux['data']['prix_original']);
-
 											$prix_promotion = $prix_base * (1.0 - $reduction_effective);
 										}
 									} // En absolu
 									elseif ($type_reduction == 'absolu') {
-										spip_log(4.2, 'teste');
-										if ($prix_base > 0) {
-											$reduction_effective = $reduction_effective + ($reduction / $prix_base);
-											$prix_promotion = $prix_base * (1.0 - $reduction_effective);
+										if ($prix_promotion > 0) {
+											$reduction_effective = $reduction_effective + ($reduction_promo / $flux['data']['prix_original']);
+											$prix_promotion = $prix_promotion * (1.0 - $reduction_effective);
 										}
 									}
-									spip_log('prix_base ' . $prix_base, 'teste');
-									spip_log('prix ' . $prix_promotion, 'teste');
-									spip_log('reduction ' . $reduction_effective, 'teste');
 								}
 
 								// On prépare l'enregistrement de la promotion
