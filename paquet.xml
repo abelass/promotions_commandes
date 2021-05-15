@@ -1,9 +1,9 @@
 <paquet
 	prefix="promotions_commandes"
 	categorie="communication"
-	version="1.0.0"
+	version="1.0.1"
 	etat="test"
-	compatibilite="[3.0.17;3.2.*]"
+	compatibilite="[3.0.17;4.0.*]"
 	logo="prive/themes/spip/images/promotions_commandes-64.png"
 	documentation=""
 >
@@ -13,7 +13,7 @@
 	<!-- Ouvre les plugin Promotions aux commandes -->
 
 	<!-- cette balise peut être présente plusieurs fois s'il y a plusieurs auteurs -->
-	<auteur lien='https://websimple.be'>Rainer Müller</auteur>
+	<auteur lien='https://web-simple.eu'>Rainer Müller</auteur>
 
 	<licence>GNU/GPL</licence>
 

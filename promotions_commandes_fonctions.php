@@ -3,7 +3,7 @@
  * Fonctions utiles au plugin Promotions commandes
  *
  * @plugin     Promotions commandes
- * @copyright  2018
+ * @copyright  2018 - 2021
  * @author     Rainer Müller
  * @licence    GNU/GPL
  * @package    SPIP\Promotions_commandes\Fonctions
